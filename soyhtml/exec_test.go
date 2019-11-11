@@ -529,10 +529,10 @@ var helloWorldTemplate = `{namespace examples.simple}
 
 /**
  * Greets a person using "Hello" by default.
- * @param name The name of the person.
- * @param? greetingWord Optional greeting word to use instead of "Hello".
  */
 {template .helloName}
+  {@param name: string}
+  {@param? greetingWord: string}
   {if not $greetingWord}
     Hello {$name}!
   {else}

@@ -597,6 +597,13 @@
   {bidiGlobalDir()}
 {/template}
 
+/**
+ * Template that tests non-SoyDoc param syntax.
+ */
+{template .nonSoyDocParams}
+  {@param name: string}
+  <b>Hello, {$name}!</b>
+{/template}
 
 /**
  * Template for printing the header to add before each example.

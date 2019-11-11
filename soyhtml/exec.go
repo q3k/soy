@@ -90,6 +90,8 @@ func (s *state) walk(node ast.Node) {
 		for _, node := range node.Nodes {
 			s.walk(node)
 		}
+	case *ast.AtParamNode:
+		// nothing to do
 
 		// Output nodes ----------
 	case *ast.PrintNode:

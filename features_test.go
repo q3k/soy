@@ -171,6 +171,10 @@ BB<br>` +
 	// 			`<option value="2008 (year)">2008 (year)</option></select></div>` +
 	// 			`<a href="#" style="float:right">Help</a><br>`},
 
+	{"nonSoyDocParams", d{
+		"name": "George",
+	},
+		`<b>Hello, George!</b>`},
 }
 
 // TestFeatures runs through the feature examples from:

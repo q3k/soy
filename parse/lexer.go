@@ -71,6 +71,8 @@ const (
 	itemLeftBracket      // [
 	itemRightBracket     // ]
 	itemQuestionKey      // ?[
+	itemAtParam          // @param
+	itemAtOptionalParam  // @param?
 
 	// Expression operations
 	itemNegate // - (unary)
@@ -563,6 +565,9 @@ func lexInsideTag(l *lexer) stateFn {
 	case r == '$', r == '.':
 		l.backup()
 		return lexIdent
+	case r == '@':
+		l.backup()
+		return lexParam
 	case r == '[':
 		l.emit(itemLeftBracket)
 	case r == ']':
@@ -727,6 +732,64 @@ func lexSoyDocParam(l *lexer) {
 			break
 		}
 	}
+}
+
+func lexParam(l *lexer) stateFn {
+	if !strings.HasPrefix(l.input[l.pos:], "@param") {
+		return l.errorf("unexpected non-param @annotation")
+	}
+
+	l.pos += ast.Pos(len("@param"))
+	switch ch := l.next(); {
+	case ch == '?':
+		if l.next() != ' ' {
+			return l.errorf("unexpected @param? suffix")
+		}
+		l.backup()
+		l.emit(itemAtOptionalParam)
+	case ch == ' ':
+		l.backup()
+		l.emit(itemAtParam)
+	default:
+		return l.errorf("unexpected @param suffix")
+	}
+
+	// skip all spaces
+	for {
+		var r = l.next()
+		if r == eof || !isSpace(r) {
+			break
+		}
+	}
+	l.backup()
+	l.ignore()
+
+	// extract the param
+	for {
+		var r = l.next()
+		if !isLetterOrUnderscore(r) {
+			if r != ':' {
+				return l.errorf("unexpected param block termination")
+			}
+			break
+		}
+	}
+
+	l.pos -= 1
+	l.emit(itemIdent)
+
+	// ignore until tag closing
+	for {
+		var r = l.next()
+		if r == eof || r == '}' {
+			break
+		}
+	}
+
+	l.pos -= 1
+	l.ignore()
+
+	return lexInsideTag(l)
 }
 
 // "//" has just been read

@@ -57,6 +57,8 @@ func newTemplateChecker(reg template.Registry, params []*ast.SoyDocParamNode) *t
 
 func (tc *templateChecker) checkTemplate(node ast.Node) {
 	switch node := node.(type) {
+	case *ast.AtParamNode:
+		tc.params = append(tc.params, node.Name)
 	case *ast.LetValueNode:
 		tc.checkLet(node.Name)
 		tc.letVars = append(tc.letVars, node.Name)

@@ -181,6 +181,11 @@ func (t *tree) beginTag() ast.Node {
 		fallthrough
 	case itemPrint:
 		return t.parsePrint(token)
+	case itemAtOptionalParam:
+		fallthrough
+	case itemAtParam:
+		t.backup()
+		return t.parseAtParam(token)
 	default:
 		t.unexpected(token, "tag")
 	}
@@ -540,6 +545,29 @@ func (t *tree) parseSoyDoc(token item) ast.Node {
 			t.unexpected(next, "soydoc")
 		}
 	}
+}
+
+func (t *tree) parseAtParam(token item) ast.Node {
+	param := &ast.AtParamNode{}
+
+	next := t.next()
+	switch next.typ {
+	case itemAtOptionalParam:
+		param.Optional = true
+		break
+	case itemAtParam:
+		break
+	default:
+		t.unexpected(next, "atparam")
+	}
+
+	ident := t.expect(itemIdent, "at param")
+
+	param.Pos = next.pos
+	param.Name = ident.val
+
+	t.expect(itemRightDelim, "atparam")
+	return param
 }
 
 func inStringSlice(item string, group []string) bool {

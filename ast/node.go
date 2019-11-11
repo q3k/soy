@@ -121,6 +121,20 @@ func (n *TemplateNode) Children() []Node {
 	return []Node{n.Body}
 }
 
+type AtParamNode struct {
+	Pos
+	Name     string
+	Optional bool
+}
+
+func (n *AtParamNode) String() string {
+	var expr = "@param"
+	if n.Optional {
+		expr += "?"
+	}
+	return expr + " " + n.Name
+}
+
 type SoyDocNode struct {
 	Pos
 	Params []*SoyDocParamNode

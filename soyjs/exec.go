@@ -111,6 +111,8 @@ func (s *state) walk(node ast.Node) {
 		s.visitTemplate(node)
 	case *ast.ListNode:
 		s.visitChildren(node)
+	case *ast.AtParamNode:
+		// nothing to do
 
 		// Output nodes ----------
 	case *ast.RawTextNode:
@@ -290,15 +292,45 @@ func (s *state) visitTemplate(node *ast.TemplateNode) {
 		s.autoescape = node.Autoescape
 	}
 
-	// Determine if we need nullsafe initialization for opt_data
-	var allOptionalParams = false
+	// Determine if we're using JSDoc Params or AtParams and determine if we
+	// need nullsafe initialization for opt_data.
+	atParams := false
+	atParamsAllOptional := true
+	for _, child := range node.Body.Children() {
+		param, ok := child.(*ast.AtParamNode)
+		if !ok {
+			continue
+		}
+		atParams = true
+		if !param.Optional {
+			atParamsAllOptional = false
+		}
+	}
+
+	soydocParams := false
+	soydocParamsAllOptional := true
 	if soydoc, ok := s.lastNode.(*ast.SoyDocNode); ok {
-		allOptionalParams = len(soydoc.Params) > 0
+		soydocParams = len(soydoc.Params) > 0
 		for _, param := range soydoc.Params {
 			if !param.Optional {
-				allOptionalParams = false
+				soydocParamsAllOptional = false
 			}
 		}
+	}
+
+	// Ensure we don't have both SoyDoc and AtParams
+	if atParams && soydocParams {
+		s.errorf("template has both soydoc and new-style params")
+	}
+
+	// Are all parameters optional?
+	allOptional := true
+	if atParams {
+		allOptional = atParamsAllOptional
+	} else if soydocParams {
+		allOptional = soydocParamsAllOptional
+	} else {
+		allOptional = false
 	}
 
 	s.jsln("")
@@ -306,7 +338,7 @@ func (s *state) visitTemplate(node *ast.TemplateNode) {
 	s.jsln(callStyle, "(opt_data, opt_sb, opt_ijData) {")
 	s.funcsInFile[callName] = true
 	s.indentLevels++
-	if allOptionalParams {
+	if allOptional {
 		s.jsln("opt_data = opt_data || {};")
 	}
 	s.jsln("var output = '';")
@@ -709,11 +741,11 @@ func (s *state) writeRawText(text []byte) {
 func (s *state) block(node ast.Node) string {
 	var buf bytes.Buffer
 	(&state{
-	    wr: &buf,
-	    scope: s.scope,
-	    options: s.options,
-	    funcsCalled: s.funcsCalled,
-	    funcsInFile: s.funcsInFile,
+		wr:          &buf,
+		scope:       s.scope,
+		options:     s.options,
+		funcsCalled: s.funcsCalled,
+		funcsInFile: s.funcsInFile,
 	}).walk(node)
 	return buf.String()
 }

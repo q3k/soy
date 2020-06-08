@@ -483,12 +483,6 @@ func (t *tree) parseFor(token item) ast.Node {
 	// get the collection to iterate through and enforce the requirements
 	var collection = t.parseExpr(0)
 	t.expect(itemRightDelim, "foreach")
-	if token.typ == itemFor {
-		f, ok := collection.(*ast.FunctionNode)
-		if !ok || f.Name != "range" {
-			t.errorf("for: expected to iterate through range()")
-		}
-	}
 
 	var body = t.itemList(itemIfempty, itemForeachEnd, itemForEnd)
 	t.backup()

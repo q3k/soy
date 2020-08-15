@@ -767,7 +767,7 @@ func lexParam(l *lexer) stateFn {
 	// extract the param
 	for {
 		var r = l.next()
-		if !isLetterOrUnderscore(r) {
+		if !isAlphaNumeric(r) {
 			if r != ':' {
 				return l.errorf("unexpected param block termination")
 			}

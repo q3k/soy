@@ -185,11 +185,9 @@ func TestAllCallParamsAreDeclaredByCallee(t *testing.T) {
     {param param2}hello{/param}
   {/call}
 {/template}
-/**
- * @param param1
- * @param? param2
- */
 {template .Other}
+{@param param1: number}
+{@param? param2: string}
   {$param1} {$param2}
 {/template}
 `, true},

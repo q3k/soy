@@ -98,6 +98,16 @@ func (tc *templateChecker) checkCall(node *ast.CallNode) {
 			requiredCalleeParamNames = append(requiredCalleeParamNames, param.Name)
 		}
 	}
+	for _, n := range callee.Node.Body.Nodes {
+		param, ok := n.(*ast.AtParamNode)
+		if !ok {
+			continue
+		}
+		allCalleeParamNames = append(allCalleeParamNames, param.Name)
+		if !param.Optional {
+			requiredCalleeParamNames = append(requiredCalleeParamNames, param.Name)
+		}
+	}
 
 	// collect caller's list of params.
 	// if {call} passes data="all", expand that into all of the key names that
